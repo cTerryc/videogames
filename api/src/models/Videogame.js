@@ -3,10 +3,41 @@ const { DataTypes } = require('sequelize');
 // Luego le injectamos la conexion a sequelize.
 module.exports = (sequelize) => {
   // defino el modelo
-  sequelize.define('videogame', {
+  sequelize.define('Videogame', {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
     name: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: false
     },
+    description: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    released: {
+      type: DataTypes.DATE,
+    },
+    rating: {
+      type: DataTypes.FLOAT,
+    },
+    platforms: {
+      type: DataTypes.STRING,
+      allowNull: false
+    }
   });
 };
+
+/* 
+El modelo de la base de datos deberá tener las siguientes entidades (Aquellas propiedades marcadas con asterísco deben ser obligatorias):
+
+[ ] Videojuego con las siguientes propiedades:
+ID: * No puede ser un ID de un videojuego ya existente en la API rawg
+Nombre *
+Descripción *
+Fecha de lanzamiento
+Rating
+Plataformas *
+*/

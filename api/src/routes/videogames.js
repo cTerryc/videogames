@@ -79,6 +79,8 @@ router.get("/", async (req, res) => {
                 }
             }
             console.log("La cantidad de elementos Encontrados: ", arrayNames.length)
+
+            //verificando si arrayNames es menor para responder
             if (arrayNames.length >= 1) {
                 res.status(200).json(arrayNames)
             }
@@ -94,23 +96,33 @@ router.get("/", async (req, res) => {
         //!  ------> GET /videogames <-------
         try {
             // Obteniendo todos los juegos de la API GAME
-            const getApi = await axios(`https://api.rawg.io/api/games?key=${API_KEY}`)
-            // filtrando toda la info para q solo me devuelva un array de juegos, con las propeidades que necesito
-            const responseApi = getApi.data.results.map(ele => {
-                return {
-                    id: ele.id,
-                    name: ele.name,
-                    image: ele.background_image,
-                    released: ele.released,
-                    rating: ele.rating,
-                    Generos: ele.genres,
-                    platforms: ele.platforms
-                }
-            })
-            // Concatenando ambos array responseApi y responseDb
-            const responseTotal = responseApi.concat(responseDb)
-            console.log("Esto es la cantidad de Videogames",responseTotal.length)
-            res.status(200).json(responseTotal)
+            let getApi = await axios(`https://api.rawg.io/api/games?key=${API_KEY}`)
+            
+            let i = 0;
+            let arrayGames = [];
+            while(i < 5) {
+                i++
+                // filtrando toda la info para q solo me devuelva un array de juegos, con las propeidades que necesito
+                const responseApi = getApi.data.results.map(ele => {
+                    // console.log("Entro a ResponseApi: ", responseApi)
+                    return {
+                        id: ele.id,
+                        name: ele.name,
+                        image: ele.background_image,
+                        released: ele.released,
+                        rating: ele.rating,
+                        Generos: ele.genres,
+                        platforms: ele.platforms
+                    }
+                })
+                arrayGames = [...arrayGames, ...responseApi];
+                
+                //!esto vuelve a llamar a la api pero el siguiente paginado de info
+                getApi = await axios(getApi.data.next)
+            }
+            console.log(arrayGames.length)
+
+            res.status(200).send(arrayGames)
         } catch (error) {
             res.status(400).send("Server error, games not found")
         }

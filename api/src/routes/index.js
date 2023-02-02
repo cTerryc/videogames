@@ -3,7 +3,7 @@ const { Router } = require('express');
 // Ejemplo: const authRouter = require('./auth.js');
 
 const genres = require('./genres.js');
-// const videogame = require('./videogame.js');
+const videogame = require('./videogame.js');
 const videogames = require('./videogames.js');
 
 const router = Router();
@@ -12,7 +12,7 @@ const router = Router();
 // Ejemplo: router.use('/auth', authRouter);
 
 router.use('/genres', genres);
-// router.use('/videogame', videogame);
+router.use('/videogame', videogame);
 router.use('/videogames', videogames);
 
 

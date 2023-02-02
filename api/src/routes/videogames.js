@@ -9,8 +9,9 @@ const axios = require("axios")
 
 router.post('/', async (req, res) => {
     let { name, description, released, rating, genres, platforms } = req.body;
+
+    // genres es un "String", conviertiendo en Array
     genres = genres.split(', ')
-    console.log(genres)
     try {
         //insertando datos en la tabla "Videgame"
         let gameCreated = await Videogame.create({
@@ -20,49 +21,104 @@ router.post('/', async (req, res) => {
             rating,
             platforms
         })
-        let genreDb = await Genero.findAll({where:{name:genres}});
+
+        // obteniendo juegos de la Db solo los nombres
+        let genreDb = await Genero.findAll({ where: { name: genres } });
+
+        // agrengando los generos a la relacion videogamegeneros
         await gameCreated.addGenero(genreDb);
-        // await gameCreated[0].setGenero(genres); // relaciono ID genres al juego creado
         res.status(200).send('Created succesfully')
     } catch (err) {
-        console.log(err);
         res.status(400).send("Create Game FAIL")
     }
 })
 
+//!  ------> GET /videogames Lista de todos los Videojuegos<-------
+
 router.get("/", async (req, res) => {
-    try {
-        const response = await axios(`https://api.rawg.io/api/games?key=${API_KEY}`)
-        const name = response.data.results.map(ele => {
-            return {
-                name: ele.name,
-                image: ele.ackground_image,
-                rating: ele.rating,
-                genres: ele.genres
+
+    // extrayendo nombre Query
+    const nameQuery = req.query.name;
+
+    // Obteniendo los juegos creados desde mi servidor local => esto sera un array
+    const responseDb = await Videogame.findAll({ include: Genero })
+
+
+
+
+    //!  ------> GET /videogames Query<-------
+    if (nameQuery) {
+        try {
+            // Obteniendo todos los juegos de la API GAME
+            const getApi = await axios(`https://api.rawg.io/api/games?search=${nameQuery}&key=${API_KEY}`)
+
+            // filtrando toda la info para q solo me devuelva un array de juegos, con las propeidades que necesito
+            const responseApi = getApi.data.results.map(ele => {
+                return {
+                    id: ele.id,
+                    name: ele.name,
+                    image: ele.background_image,
+                    released: ele.released,
+                    rating: ele.rating,
+                    Generos: ele.genres,
+                    platforms: ele.platforms
+                }
+            })
+
+            // Concatenando ambos array responseApi y responseDb
+            const responseTotal = responseApi.concat(responseDb)
+
+            let arrayNames = [];
+            // let i = 0;
+            for (game of responseTotal) {
+                if (arrayNames.length >= 15) {
+                    break
+                }
+                if (game.name.toLowerCase().includes(nameQuery.toLocaleLowerCase())) {
+                    arrayNames.push(game);
+                }
             }
-        })
-        console.log(name.length)
-        res.status(200).json(name)
-    } catch (error) {
-        
+            console.log("La cantidad de elementos Encontrados: ", arrayNames.length)
+            if (arrayNames.length >= 1) {
+                res.status(200).json(arrayNames)
+            }
+            else {
+                res.status(400).send("Game Not Fund")
+            }
+        } catch (error) {
+            res.status(400).send("Server Error, API no responde")
+        }
+
+    } else {
+
+        //!  ------> GET /videogames <-------
+        try {
+            // Obteniendo todos los juegos de la API GAME
+            const getApi = await axios(`https://api.rawg.io/api/games?key=${API_KEY}`)
+            // filtrando toda la info para q solo me devuelva un array de juegos, con las propeidades que necesito
+            const responseApi = getApi.data.results.map(ele => {
+                return {
+                    id: ele.id,
+                    name: ele.name,
+                    image: ele.background_image,
+                    released: ele.released,
+                    rating: ele.rating,
+                    Generos: ele.genres,
+                    platforms: ele.platforms
+                }
+            })
+            // Concatenando ambos array responseApi y responseDb
+            const responseTotal = responseApi.concat(responseDb)
+            console.log("Esto es la cantidad de Videogames",responseTotal.length)
+            res.status(200).json(responseTotal)
+        } catch (error) {
+            res.status(400).send("Server error, games not found")
+        }
     }
 })
-// === GET ===
-// Imagen
-// Nombre
-// Géneros
-// rating
 
-// router.post("/", async (req, res) => {
-//     try {
-//         let {name, released, rating, platforms, genres, description_raw, background_image} = req.body;
-//         platforms = buildPlatforms2(platforms);
-//         let newVideogame = await Videogame.create({name, released, rating, platforms, description_raw, background_image});
-//         let genreDb = await Genre.findAll({where:{name:genres}});
-//         newVideogame.addGenre(genreDb);
-//         res.status(200).send("Videogame was created");
-//     } catch (error) {
-//         res.status(400).send("Videogame was not created");
-//     }
-// })
+
+
+
+
 module.exports = router;

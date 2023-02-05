@@ -95,34 +95,31 @@ router.get("/", async (req, res) => {
 
         //!  ------> GET /videogames <-------
         try {
-            // Obteniendo todos los juegos de la API GAME
-            let getApi = await axios(`https://api.rawg.io/api/games?key=${API_KEY}`)
-            
-            let i = 0;
-            let arrayGames = [];
-            while(i < 5) {
-                i++
-                // filtrando toda la info para q solo me devuelva un array de juegos, con las propeidades que necesito
-                const responseApi = getApi.data.results.map(ele => {
-                    // console.log("Entro a ResponseApi: ", responseApi)
-                    return {
-                        id: ele.id,
-                        name: ele.name,
-                        image: ele.background_image,
-                        released: ele.released,
-                        rating: ele.rating,
-                        Generos: ele.genres,
-                        platforms: ele.platforms
-                    }
-                })
-                arrayGames = [...arrayGames, ...responseApi];
-                
-                //!esto vuelve a llamar a la api pero el siguiente paginado de info
-                getApi = await axios(getApi.data.next)
-            }
-            console.log(arrayGames.length)
 
-            res.status(200).send(arrayGames)
+            // creando un array con todos los Links de la API q voy a solicitar, para poder tener los 100 juegos
+            let arrayGetApi = [
+                axios.get(`https://api.rawg.io/api/games?key=${API_KEY}`),
+                axios.get(`https://api.rawg.io/api/games?key=${API_KEY}&page=2`),
+                axios.get(`https://api.rawg.io/api/games?key=${API_KEY}&page=3`),
+                axios.get(`https://api.rawg.io/api/games?key=${API_KEY}&page=4`),
+                axios.get(`https://api.rawg.io/api/games?key=${API_KEY}&page=5`)
+            ]
+            // aqui voy a introducir todos los juegos obtenidos de la API
+            let getTotalApi = []
+
+            // Recorriendo "arrayGetApi", y capturando cada uno uno de los EndPoints
+            await Promise.all(arrayGetApi)
+                .then(e => {
+                    //! capturando los elementos de cada EndPoint y concatenando con "getTotalApi"
+                    e.forEach(e => {
+                        //"e.data.results" es un array donde cada elemento es un objeto y cada objeto contiene un juego, estoy capturando todos los elementos e intruduciendolos en el array "getTotalApi"
+                        getTotalApi = [...getTotalApi, ...e.data.results]
+                    })
+                })
+                .catch(e => console.log(e))
+            
+            console.log(getTotalApi.length)
+            res.status(200).send(getTotalApi)
         } catch (error) {
             res.status(400).send("Server error, games not found")
         }

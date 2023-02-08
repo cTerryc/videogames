@@ -1,0 +1,6 @@
+export const JUEGOS_LISTA = "JUEGOS_LISTA";
+export const JUEGO_DETAILS = "JUEGO_DETAILS";
+export const GENRES = "GENRES";
+export const JUEGOS_SEARCH = "JUEGOS_SEARCH";
+export const JUEGO_CREATION = "JUEGO_CREATION";
+export const JUEGOS_FAVORITOS = "JUEGOS_FAVORITOS";

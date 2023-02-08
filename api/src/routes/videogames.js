@@ -9,9 +9,11 @@ const axios = require("axios")
 
 router.post('/', async (req, res) => {
     let { name, description, released, rating, genres, platforms } = req.body;
-
+    platforms = platforms.toString()
     // genres es un "String", conviertiendo en Array
-    genres = genres.split(', ')
+    if (typeof genres === "string") {
+        genres = genres.split(', ')
+    }
     try {
         //insertando datos en la tabla "Videgame"
         let gameCreated = await Videogame.create({
@@ -117,7 +119,7 @@ router.get("/", async (req, res) => {
                     })
                 })
                 .catch(e => console.log(e))
-            
+
             console.log(getTotalApi.length)
             res.status(200).send(getTotalApi)
         } catch (error) {

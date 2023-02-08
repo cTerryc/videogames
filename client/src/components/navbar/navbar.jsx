@@ -1,0 +1,22 @@
+import React from "react";
+import { NavLink } from "react-router-dom";
+import "./navbar.css"
+
+class NavBar extends React.Component {
+    constructor(props) {
+        super(props)
+    }
+
+    render() {
+        return (
+            <div className="navbar-div">
+                <NavLink to="/" ><button>Intro</button></NavLink>
+                <NavLink to="/videogames" ><button>Videogames</button></NavLink>
+                <NavLink to="/createVideogame" ><button>CrearJuego</button></NavLink>
+                <NavLink to="/about" ><button>Abou</button></NavLink>
+            </div>
+        )
+    }
+}
+
+export default NavBar;

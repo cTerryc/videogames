@@ -22,21 +22,22 @@ class Landingpage extends React.Component {
         super(props)
     }
 
-    handleClick = () => {
+    onClick = () => {
         this.props.history.push("/videogames")
     }
 
     componentDidMount() {
-        if (this.props.allgames <= 0) {
-            this.props.games()
-        }
+        //! si activamos lo comentado abajo, el landing page tmb hara el get a la api al ser montado
+        // if (this.props.allgames <= 0) {
+        //     this.props.games()
+        // }
     }
 
     render() {
         return (
             <div>
                 <video src={Lich} autoPlay muted loop style={videoCss} />
-                <button onClick={(e) => this.handleClick(e)} className={landing.boton}><span>INGRESAR</span></button>
+                <button onClick={(e) => this.onClick(e)} className={landing.boton}><span>INGRESAR</span></button>
             </div>
         )
     }

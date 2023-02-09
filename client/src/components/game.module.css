@@ -2,3 +2,19 @@
     width: 500px;
     height: 300px;
 }
+
+.buttonContainer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    padding-left: 20%;
+    padding-right: 20%;
+}
+
+.buttonNext {
+    display: grid;
+}
+
+.buttonPrevius {
+    display: grid;
+}

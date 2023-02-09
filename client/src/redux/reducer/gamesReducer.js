@@ -1,15 +1,27 @@
-import { JUEGOS_LISTA } from "../actionsTypes/actionsTypes.js";
+import { JUEGOS_LISTA, GENEROS, PLATFORMS } from "../actionsTypes/actionsTypes.js";
 
 const initialState = {
-    allgames: []
+    allgames: [],
+    generos: [],
+    platforms: []
 }
 
-const gamesReducer = (state = initialState, action) => {
-    switch (action.type) {
+const gamesReducer = (state = initialState, actions) => {
+    switch (actions.type) {
         case JUEGOS_LISTA:
             return {
                 ...state,
-                allgames: [...state.allgames, ...action.payload]
+                allgames: [...state.allgames, ...actions.payload]
+            }
+        case GENEROS:
+            return {
+                ...state,
+                generos: [...state.generos, ...actions.payload]
+            };
+        case PLATFORMS:
+            return {
+                ...state,
+                platforms: [...state.platforms, ...actions.payload]
             }
         /* case GENRES:
             return {

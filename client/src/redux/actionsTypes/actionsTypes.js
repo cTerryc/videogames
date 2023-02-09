@@ -4,3 +4,5 @@ export const GENRES = "GENRES";
 export const JUEGOS_SEARCH = "JUEGOS_SEARCH";
 export const JUEGO_CREATION = "JUEGO_CREATION";
 export const JUEGOS_FAVORITOS = "JUEGOS_FAVORITOS";
+export const GENEROS = "GENEROS";
+export const PLATFORMS = "PLATFORMS";

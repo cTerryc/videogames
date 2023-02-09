@@ -29,7 +29,7 @@ router.post('/', async (req, res) => {
 
         // agrengando los generos a la relacion videogamegeneros
         await gameCreated.addGenero(genreDb);
-        res.status(200).send('Created succesfully')
+        res.status(200).json('Created succesfully')
     } catch (err) {
         res.status(400).send("Create Game FAIL")
     }
@@ -38,6 +38,35 @@ router.post('/', async (req, res) => {
 //!  ------> GET /videogames Lista de todos los Videojuegos<-------
 
 router.get("/", async (req, res) => {
+
+
+    // buscar a la API los generos => el cual me dara un "OBJETO" con una propiedad "results"
+    // "results" => me dara un ARRAY de objetos, cada objeto es un genero q contiene juegos.
+    const response = await axios(`https://api.rawg.io/api/genres?key=${API_KEY}`)
+
+    // recibo un objeto que contiene la propiedad results, el cual me dara un ARRAY de objetos, 
+    // cada objeto es un genero q contiene juegos.
+    const genres = response.data.results;
+
+    // Insertando todos los "nombres de cada generos" en la tabla "Genero"
+    await genres.forEach(g => {
+        Genero.create({
+            name: g.name
+        })
+            .then(usuario => {
+                //con esto podria capturar el resultado de la creacion o solo mandar un console.log en pantalla
+                console.log('Usuario creado con éxito:')
+            })
+            .catch(error => {
+                //si hay un error al crear un elemento en la tabla, con esto atrapo el error y asi el server no se cae
+                if (error.name === 'SequelizeUniqueConstraintError') {//! para capturar el error igualar siempre con "SequelizeUniqueConstraintError"
+                    console.error('Error: Ya existe el Genero');
+                } else {
+                    // con esto atrapo un error q no sea por duplicado
+                    console.error('Error creando Genero:', error);
+                }
+            });
+    })
 
     // extrayendo nombre Query
     const nameQuery = req.query.name;

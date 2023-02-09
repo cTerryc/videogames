@@ -12,8 +12,8 @@ class NavBar extends React.Component {
             <div className="navbar-div">
                 <NavLink to="/" ><button>Intro</button></NavLink>
                 <NavLink to="/videogames" ><button>Videogames</button></NavLink>
-                <NavLink to="/createVideogame" ><button>CrearJuego</button></NavLink>
-                <NavLink to="/about" ><button>Abou</button></NavLink>
+                <NavLink to="/createVideogame" ><button>Create Game</button></NavLink>
+                <NavLink to="/about" ><button>About</button></NavLink>
             </div>
         )
     }

@@ -1,245 +1,167 @@
-import { React, useEffect, useState } from 'react'
-import axios from 'axios'
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { GenerosGet, PlatformsGet } from "../../redux/actions/actions.js";
+import createVideogame from "./createVideo.module.css"
 
-function CreateVideogame(props) {
-
-    const [errors, setErrors] = useState({ form: 'Must complete the form' });
-
-    const [form, setForm] = useState({
-        name: '',
-        description: '',
-        released: '',
-        rating: 0,
-        genres: [],
-        platforms: []
-    });
-
-    console.log(errors)
-
-    const onChange = e => {
-        //! Recordar que solo los "checkbox" contienen la propiedad parentNode.id
-        // de exister la propiedad "parentNode.id" y es igual a "genres"
-        if (e.target.parentNode.parentNode.id === 'genres') {
-            if (e.target.checked) {
-                setForm(prevState => ({
-                    ...prevState,
-                    genres: form.genres.concat(e.target.value)
-                }))
-            } else {
-                setForm(prevState => ({
-                    ...prevState,
-                    genres: form.genres.filter(x => e.target.value !== x)
-                }))
-            }
-        }
-        // de exister la propiedad "parentNode.id" y es igual a "platforms"
-        if (e.target.parentNode.parentNode.id === 'platforms') {
-            if (e.target.checked) {
-                setForm(prevState => ({
-                    ...prevState,
-                    platforms: form.platforms.concat(e.target.name)
-                }))
-            } else {
-                setForm(prevState => ({
-                    ...prevState,
-                    platforms: form.platforms.filter(x => e.target.name !== x)
-                }))
-            }
-        }
-        // capturamos los input text y date("fecha")
-        if (e.target.type !== 'checkbox') {
-            setForm(prevState => ({
-                ...prevState,
-                [e.target.name]: e.target.value
-            }))
-        }
-        // enviamos el state("form") a setErrors, para ir verificando los errores
-        setErrors(validateErrors({
-            ...form,
-            [e.target.name]: e.target.value
-        }))
+//! esto son las opciones q necesita "fetch" para hacer el post, donde "obj" sera el formulario a enviar
+const options = (obj) => {
+    return {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(obj),
     }
-    const validateErrors = form => {
+};
+
+export default function CreateVideogame(props) {
+
+    // Seteo el estao local de los inpunt y checkbox
+    const [local, setLocal] = useState({
+        localGeneros: [],
+        localPlatforms: [],
+        name: "",
+        description: "",
+        released: "",
+        rating: 0
+    })
+
+    // seteo un estado para poder verificar errores
+    const [errors, setErrors] = useState({
+        localGeneros: [],
+        localPlatforms: [],
+        name: "",
+        description: "",
+        released: "",
+        rating: 0
+    })
+
+    // funcion para ver el stado actual y verificar si falta rellenar algun campo
+    function catchErrors() {
         let errors = {};
-        if (!form.name) {
-            errors.name = 'Game Name is required';
-        } else if (form.name.length < 4) {
-            errors.name = 'Game Name must have at least 4 characters';
-        }
-        if (!form.description) {
-            errors.description = 'Description is required';
-        } else if (form.description.length < 8) {
-            errors.description = 'Description must have at least 8 characters'
-        }
-        if (!form.rating) {
-            errors.rating = 'Rating is required';
-        } else if (!/^[1-5]$/.test(form.rating)) {
-            errors.rating = 'Rating must be between 1 and 5';
-        }
+        if (local.localGeneros.length <= 0) errors.localGeneros = "Generos: select at least 1 gender";
+        if (local.localPlatforms.length <= 0) errors.localPlatforms = "Platform: select at least 1 platform";
+        if (local.name.length <= 0) errors.name = "Name: must contain at least 1 characters";
+        if (local.description <= 0) errors.description = "Description: is required";
+        if (local.released <= 0) errors.released = "Date: is required";
+        if (local.rating <= 0 && local.rating > 5 ) errors.rating = "Rating: select a number from 1 to 5"
         return errors;
     }
 
-    const onSubmit = e => {
-        e.preventDefault()
+    // realizo destructuring al stado global y obtengo los generos y platforms q existen
+    const { generos, platforms } = useSelector((state) => state)
+    const dispatch = useDispatch()
 
-        //validamos el state form para ver si hay errores
-        // validateErrors(form);
-        let checkboxsErrors = []
-        if (form.genres.length < 1) checkboxsErrors.push('Genres is required');
-        if (form.platforms.length < 1) checkboxsErrors.push('Platforms is required');
-        
-        // Object.values --> retorno un array con los values
-        if (Object.values(errors).length || checkboxsErrors.length) {
-            return alert(Object.values(errors).concat(checkboxsErrors).join('\n'));
+    // si el estado global no contiene generos, realizo un pedido a la api
+    if (generos.length <= 0) dispatch(GenerosGet())
+    // si el estado global no contiene platforms, realizo un pedido a la api
+    if (platforms.length <= 0) dispatch(PlatformsGet())
+
+    // capturo todos los cambios realizados en los input y checkbox
+    function onChange(e) {
+        // verifico si el evento es del tipo checkbox
+        if (e.target.type === "checkbox") {
+            // de no existir el tipo dentro de mi stado local, lo añado
+            let findCheckbox = local[e.target.value].find(ele => ele === e.target.name);
+            if (!findCheckbox) {
+                setLocal({
+                    ...local,
+                    [e.target.value]: [...local[e.target.value], e.target.name]
+                })
+                setErrors({
+                    ...errors,
+                    [e.target.value]: [...errors[e.target.value], e.target.name]
+                })
+            } else {
+                // al desmarcar el checkbox se repite el evento, enviandome el value, lo filtro y lo quito del estado local
+                let filterLocal = local[e.target.value].filter(ele => ele !== findCheckbox);
+                setLocal({
+                    ...local,
+                    [e.target.value]: filterLocal
+                })
+                setErrors({
+                    ...errors,
+                    [e.target.value]: filterLocal
+                })
+
+
+            }
         }
-        axios.post('http://localhost:3001/videogames', form)
-            .then(res => console.log(res.data));
-        alert(`${form.name} Creado Correctamente`)
+        // si el evento tiene de nombre text, seteo los input en el estado local
+        if (e.target.name === "text") {
+            setLocal({
+                ...local,
+                [e.target.id]: e.target.value
+            })
+        }
+    }
+
+    // envio todo el formulario y relaizo un "fetch-post"
+    const onSubmit = (e) => {
+        e.preventDefault()
+        console.log(catchErrors())
+        if (local.rating > 5 || local.rating < 1) return alert("Rating: select a number from 1 to 5")
+        if (Object.keys(catchErrors()).length !== 0) {
+            return alert("Rellenar todos los campos")
+        }
+        // creo un objeto con las propiedades necesarias para crear el juego y con los valores del estado local //! recordar q se hizo esto por el avance del Pi, y no tener q renombrar todo.
+        let enviarPost = {
+            name: local.name,
+            description: local.description,
+            released: local.released,
+            rating: local.rating,
+            genres: local.localGeneros,
+            platforms: local.localPlatforms
+        }
+        fetch('http://localhost:3001/videogames', options(enviarPost))
+            .then(response => response.json())
+            .then(response => alert(response))
         props.history.push('/videogames')
     }
 
     return (
-        <div className="main-add">
-            <div className="container-add">
-                <h2>CREATE GAME - DETAILS -</h2>
-                <div className="div-cont">
-                    <form onSubmit={onSubmit} onChange={onChange} id="123">
-                        <label htmlFor='name' className="title-name">Name: </label>
-                        <input className="name" placeholder='Name' type="text" id='name' name='name' autoComplete="off" />
-                        <br />
-                        <label htmlFor="description" className="title-name">Description: </label>
-                        <textarea className="name" name='description' placeholder='Description...' id="description" cols="30" rows="3" />
-                        <br />
-                        <label htmlFor="date" className="title-name">Release Date: </label>
-                        <input name='released' className="dt" type="date" id="date" required />
-                        <br />
-                        <label htmlFor="rating" className="title-name">Rating: </label>
-                        <input name='rating' className="dt" placeholder='Rate from 1 to 5' type="tel" id="rating" maxLength='1' autoComplete="on" />
-                        <br />
-                        <label className="title-name">Genres: </label>
-                        <div id='genres' className="genres-div">
-                            <div className="Action">
-                                <input name='Action' value='Action' type="checkbox" id="Action" />
-                                <label >Action.</label>
-                            </div>
-                            <div className="indie">
-                                <input name='Indie' value='Indie' type="checkbox" id="Indie" />
-                                <label htmlFor="Indie">Indie.</label>
-                            </div>
-                            <div className="Adventure">
-                                <input name='Adventure' value='Adventure' type="checkbox" id="Adventure" />
-                                <label htmlFor="Adventure">Adventure.</label>
-                            </div>
-                            <div>
-                                <input name='RPG' value='RPG' type="checkbox" id="RPG" />
-                                <label htmlFor="RPG">RPG.</label>
-                            </div>
-                            <div>
-                                <input name='Strategy' value='Strategy' type="checkbox" id="Strategy" />
-                                <label htmlFor="Strategy">Strategy.</label>
-                            </div>
-                            <div>
-                                <input name='Shooter' value='Shooter' type="checkbox" id="Shooter" />
-                                <label htmlFor="Shooter">Shooter.</label>
-                            </div>
-                            <div>
-                                <input name='Casual' value='7Casual' type="checkbox" id="Casual" />
-                                <label htmlFor="Casual">Casual.</label>
-                            </div>
-                            <div>
-                                <input name='Simulation' value='Simulation' type="checkbox" id="Simulation" />
-                                <label htmlFor="Simulation">Simulation.</label>
-                            </div>
-                            <div>
-                                <input name='Puzzle' value='Puzzle' type="checkbox" id="Puzzle" />
-                                <label htmlFor="Puzzle">Puzzle.</label>
-                            </div>
-                            <div>
-                                <input name='Arcade' value='Arcade' type="checkbox" id="Arcade" />
-                                <label htmlFor="Arcade">Arcade.</label>
-                            </div>
-                            <div>
-                                <input name='Platformer' value='Platformer' type="checkbox" id="Platformer" />
-                                <label htmlFor="Platformer">Platformer.</label>
-                            </div>
-                            <div>
-                                <input name='Racing' value='Racing' type="checkbox" id="Racing" />
-                                <label htmlFor="Racing">Racing.</label>
-                            </div>
-                            <div>
-                                <input name='Massively-Multiplayer' value='Massively-Multiplayer' type="checkbox" id="Massively-Multiplayer" />
-                                <label htmlFor="Massively-Multiplayer">Massively-Multiplayer.</label>
-                            </div>
-                            <div>
-                                <input name='Sports' value='Sports' type="checkbox" id="Sports" />
-                                <label htmlFor="Sports">Sports.</label>
-                            </div>
-                            <div>
-                                <input name='Fighting' value='1Fighting5' type="checkbox" id="Fighting" />
-                                <label htmlFor="Fighting">Fighting.</label>
-                            </div>
-                            <div>
-                                <input name='Family' value='Family' type="checkbox" id="Family" />
-                                <label htmlFor="Family">Family.</label>
-                            </div>
-                            <div>
-                                <input name='Board Games' value='Board Games' type="checkbox" id="Board Games" />
-                                <label htmlFor="Board Games">Board Games.</label>
-                            </div>
-                            <div>
-                                <input name='Educational' value='Educational' type="checkbox" id="Educational" />
-                                <label htmlFor="Educational">Educational.</label>
-                            </div>
-                            <div>
-                                <input name='Card' value='Card' type="checkbox" id="Card" />
-                                <label htmlFor="Card">Card.</label>
-                            </div>
-                        </div>
-                        <label className="title-name">Platforms: </label>
-                        <div id='platforms' className="plat-div">
-                            <div>
-                                <input name='PC' type="checkbox" id="PC" value={"PC"} />
-                                <label htmlFor="PC">PC.</label>
-                            </div>
-                            <div>
-                                <input name='iOS' type="checkbox" id="iOS" />
-                                <label htmlFor="iOS">iOS.</label>
-                            </div>
-                            <div>
-                                <input name='Android' type="checkbox" id="Android" />
-                                <label htmlFor="Android">Android.</label>
-                            </div>
-                            <div>
-                                <input name='macOS' type="checkbox" id="macOS" />
-                                <label htmlFor="macOS">macOS.</label>
-                            </div>
-                            <div>
-                                <input name='PlayStation 4' type="checkbox" id="PlayStation 4" />
-                                <label htmlFor="PlayStation 4">PlayStation 4.</label>
-                            </div>
-                            <div>
-                                <input name='PlayStation 5' type="checkbox" id="PlayStation 5" />
-                                <label htmlFor="PlayStation 5">PlayStation 5.</label>
-                            </div>
-                            <div>
-                                <input name='XBOX' type="checkbox" id="XBOX" />
-                                <label htmlFor="XBOX">XBOX.</label>
-                            </div>
-                            <div>
-                                <input name='PS Vita' type="checkbox" id="PS Vita" />
-                                <label htmlFor="PS Vita">PS Vita.</label>
-                            </div>
-                        </div>
-                        <br />
-                        <div className="div-but-form">
-                            <button type='submit'>Create</button>
-                        </div>
-                    </form>
-                </div>
+        <form onChange={onChange} onSubmit={onSubmit}>
+            <h2>CREATE YOUR GAME</h2>
+            <p>Rellenar todos los campos: </p>
+            <div>
+                <label className={local.name ? createVideogame.p2 : createVideogame.p1}>Name: </label>
+                <input placeholder="Name..." type="text" name="text" id="name" />
             </div>
-        </div>
+            <div>
+                <label className={local.description ? createVideogame.p2 : createVideogame.p1}>Description: </label>
+                <textarea placeholder="Description..." type="text" name="text" id="description" />
+            </div>
+            <div>
+                <label className={local.released ? createVideogame.p2 : createVideogame.p1}>Date: </label>
+                <input placeholder="Date" type="date" name="text" id="released" />
+            </div>
+            <div>
+                <label className={local.rating ? createVideogame.p2 : createVideogame.p1}>Rating: </label>
+                <input placeholder="choose from 1 to 5..." type="number" name="text" id="rating"/>
+            </div>
+            <h2>Generos</h2>
+            {local.localGeneros.length <= 0 ? <p className={createVideogame.p1}>sleccionar almenos una plataforma X</p>
+                : <p className={createVideogame.p2}>sleccionar almenos una plataforma ✓</p>}
+            {generos?.map((e, i) => {
+                return (
+                    <div key={i}>
+                        <label>{e}</label>
+                        <input type="checkbox" name={e} value="localGeneros" />
+                    </div>
+                )
+            })}
+            <h2>Platforms</h2>
+            {local.localPlatforms.length <= 0 ? <p className={createVideogame.p1}>sleccionar almenos una plataforma X</p>
+                : <p className={createVideogame.p2}>sleccionar almenos una plataforma ✓</p>}
+            {platforms?.map((e, i) => {
+                return (
+                    <div key={i}>
+                        <label>{e}</label>
+                        <input type="checkbox" name={e} value="localPlatforms" />
+                    </div>
+                )
+            })}
+            <input type="submit" />
+        </form>
     )
 }
-
-
-export default CreateVideogame

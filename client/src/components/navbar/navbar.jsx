@@ -1,12 +1,11 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import SearchBar from "../Search/search";
 import "./navbar.css"
 
 class NavBar extends React.Component {
-    constructor(props) {
-        super(props)
-    }
+    // constructor(props) {
+    //     super(props)
+    // }
 
     render() {
         return (
@@ -15,7 +14,6 @@ class NavBar extends React.Component {
                 <NavLink to="/videogames" ><button>Videogames</button></NavLink>
                 <NavLink to="/createVideogame" ><button>Create Game</button></NavLink>
                 <NavLink to="/about" ><button>About</button></NavLink>
-                    <SearchBar />
             </div>
         )
     }

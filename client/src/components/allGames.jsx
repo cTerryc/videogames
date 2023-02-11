@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { games } from "../redux/actions/actions.js";
 import Pagina from "./pagina/pagina.jsx";
@@ -8,21 +8,23 @@ import allGamesCss from "./game.module.css"
 function AllGames(props) {
 
     const allGames = useSelector((state) => state.allgames);
-    const [filtro, setFiltro] = useState([])
 
     const dispatch = useDispatch()
     const [currentPage, setCurrentPage] = useState(0);
 
-    if (allGames.length <= 0) {
-        console.log("entro a la condicion if")
-        dispatch(games())
-    }
+    useEffect(() => {
+        let temporalAllGames = []
+        dispatch(games(temporalAllGames))
+        setTimeout(() => {
+            dispatch(games("renderiza"))
+        },1000)
+    },[])
 
     //? Si la state global no contiene los juegos se mostrara este texto hasta q termine de cargarse los juegos
     if (allGames.length === 0) {
         return (
             <div>
-                <h1>Cargando Juegos...</h1>
+                <h1>Loading Games...</h1>
             </div>
         );
     }
@@ -45,14 +47,14 @@ function AllGames(props) {
             <>
                 {/* con el "onClick" seteamos el estado local para renderizar la pagina, segun el indice del array*/}
                 <div className={allGamesCss.buttonContainer}>
-                    {currentPage > 0 ? <button onClick={() => setCurrentPage(currentPage - 1)}>Previous</button> : <button disabled="true">Previous</button>}
+                    {currentPage > 0 ? <button onClick={() => setCurrentPage(currentPage - 1)}>Previous</button> : <button disabled={true}>Previous</button>}
                     {buttons.map((e, i) => {
                         return (
                             <button onClick={() => setCurrentPage(i)} key={i + e}>{i + e}</button>
                         )
                     })}
                     {/* con el "onClick" seteamos el estado local, segun el numero de la pagina sumamos o restamos 1*/}
-                    {currentPage < totalPages - 1 && (<button onClick={() => setCurrentPage(currentPage + 1)}>Next</button>)}
+                    {currentPage < totalPages - 1 ? <button onClick={() => setCurrentPage(currentPage + 1)}>Next</button> : <button disabled={true}>Next</button>}
                 </div>
                 <Pagina games={allGamesForCurrentPage} />
             </>

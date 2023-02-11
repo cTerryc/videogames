@@ -38,10 +38,10 @@ router.get('/:id', async (req, res) => {
             const detailsGame = {
                 id: detail.id,
                 name: detail.name,
-                image: detail.background_image,
+                background_image: detail.background_image,
                 released: detail.released,
                 rating: detail.rating,
-                Generos: detail.genres,
+                genres: detail.genres,
                 platforms: detail.platforms,
                 description: detail.description
             }

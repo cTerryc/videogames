@@ -18,9 +18,9 @@ let videoCss = {
 
 class Landingpage extends React.Component {
 
-    constructor(props) {
-        super(props)
-    }
+    // constructor(props) {
+    //     super(props)
+    // }
 
     onClick = () => {
         this.props.history.push("/videogames")

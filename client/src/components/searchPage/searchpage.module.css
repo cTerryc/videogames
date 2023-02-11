@@ -1,0 +1,17 @@
+.garden {
+    display: grid;
+    grid-template-columns: 25% 25% 25% 25%;
+    grid-template-rows: 1fr 1fr 1fr;
+}
+
+.img {
+    width: 200px;
+    height: 120px;
+}
+
+.div {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-direction: column;
+}

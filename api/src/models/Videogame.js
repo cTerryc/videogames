@@ -27,7 +27,13 @@ module.exports = (sequelize) => {
     platforms: {
       type: DataTypes.STRING,
       allowNull: false
+    },
+    background_image: {
+      type: DataTypes.STRING,
+      allowNull: true
     }
+  },{
+    timestamps: false
   });
 };
 

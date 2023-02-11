@@ -1,6 +1,13 @@
-import { JUEGOS_LISTA, GENEROS, PLATFORMS } from "../actionsTypes/actionsTypes.js";
+import { JUEGOS_LISTA, GENEROS, PLATFORMS, JUEGOS_SEARCH, SEARCHPAGESTATE, FILTERSTATE } from "../actionsTypes/actionsTypes.js";
 
-export function games() {
+export function games(allGames) {
+    if (allGames.length === 0) {
+        console.log("entro al arrah Vacio")
+        return {
+            type: JUEGOS_LISTA,
+            payload: []
+        }
+    }
     return function (dispatch) {
         return fetch(`http://localhost:3001/videogames`)
             .then(infoApi => infoApi.json())
@@ -12,7 +19,7 @@ export function games() {
 
 export const GenerosGet = () => {
 
-    const generos = [
+    let generos = [
         "Action",
         "Indie",
         "Adventure",
@@ -42,7 +49,7 @@ export const GenerosGet = () => {
 
 export const PlatformsGet = () => {
 
-    const platforms = [
+    let platforms = [
         "PC",
         "iOS",
         "Android",
@@ -59,21 +66,56 @@ export const PlatformsGet = () => {
     }
 }
 
-/* export const gamesSearch = (state = initialState, action) => {
+// export const Rating = () => {
 
+//     let rating = [1,2,3,4,5]
+
+//     return {
+//         type: RATING,
+//         payload: rating
+//     }
+// }
+
+export const gamesSearch = (name) => {
+    console.log("esto es NAME en actio",name)
+    if (name.length === 0) {
+        console.log("entro al arrah Vacio")
+        return {
+            type: JUEGOS_SEARCH,
+            payload: []
+        }
+    }
+    console.log("no entro al array vacio")
+    return function (dispatch) {
+        return fetch(`http://localhost:3001/videogames?name=${name}`)
+            .then(infoApi => infoApi.json())
+            .then(games => {
+                dispatch({ type: JUEGOS_SEARCH, payload: games })
+            })
+    }
 }
 
-export const gameId = (state = initialState, action) => {
-
+export const searchPagseState = (state) => {
+    return {
+        type: SEARCHPAGESTATE,
+        payload: state
+    }
 }
 
-export const genres = (state = initialState, action) => {
-
+export const actionFilterState = (state) => {
+    return {
+        type: FILTERSTATE,
+        payload: state
+    }
 }
 
-export const gameCreation = (state = initialState, action) => {
+// export const genres = (state = initialState, action) => {
 
-} */
+// }
+
+// export const gameCreation = (state = initialState, action) => {
+
+// }
 
 /* export function games() {
     return async function (dispatch) {

@@ -1,6 +1,4 @@
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { GenerosGet, PlatformsGet } from "../../redux/actions/actions.js";
+import { useState } from "react";
 import createVideogame from "./createVideo.module.css"
 
 //! esto son las opciones q necesita "fetch" para hacer el post, donde "obj" sera el formulario a enviar
@@ -33,7 +31,8 @@ export default function CreateVideogame(props) {
         name: "",
         description: "",
         released: "",
-        rating: 0
+        rating: 0,
+        background_image: ""
     })
 
     // funcion para ver el stado actual y verificar si falta rellenar algun campo
@@ -44,18 +43,49 @@ export default function CreateVideogame(props) {
         if (local.name.length <= 0) errors.name = "Name: must contain at least 1 characters";
         if (local.description <= 0) errors.description = "Description: is required";
         if (local.released <= 0) errors.released = "Date: is required";
-        if (local.rating <= 0 && local.rating > 5 ) errors.rating = "Rating: select a number from 1 to 5"
+        if (local.rating <= 0 && local.rating > 5 ) errors.rating = "Rating: select a number from 1 to 5";
+        if (local.background_image <= 0) errors.background_image = "Image: insert an image"
         return errors;
     }
 
     // realizo destructuring al stado global y obtengo los generos y platforms q existen
-    const { generos, platforms } = useSelector((state) => state)
-    const dispatch = useDispatch()
+    // const { generos, platforms } = useSelector((state) => state)
+    let generos = [
+        "Action",
+        "Indie",
+        "Adventure",
+        "RPG",
+        "Strategy",
+        "Shooter",
+        "Casual",
+        "Simulation",
+        "Puzzle",
+        "Arcade",
+        "Platformer",
+        "Racing",
+        "Massively-Multiplayer",
+        "Sports",
+        "Fighting",
+        "Family",
+        "Board Games",
+        "Educational",
+        "Card"
+    ]
+    let platforms = [
+        "PC",
+        "iOS",
+        "Android",
+        "macOS",
+        "PlayStation 4",
+        "PlayStation 5",
+        "XBOX",
+        "PS Vita"
+    ]
 
     // si el estado global no contiene generos, realizo un pedido a la api
-    if (generos.length <= 0) dispatch(GenerosGet())
+    // if (generos.length <= 0) dispatch(GenerosGet())
     // si el estado global no contiene platforms, realizo un pedido a la api
-    if (platforms.length <= 0) dispatch(PlatformsGet())
+    // if (platforms.length <= 0) dispatch(PlatformsGet())
 
     // capturo todos los cambios realizados en los input y checkbox
     function onChange(e) {
@@ -101,6 +131,8 @@ export default function CreateVideogame(props) {
         e.preventDefault()
         console.log(catchErrors())
         if (local.rating > 5 || local.rating < 1) return alert("Rating: select a number from 1 to 5")
+        if (local.localGeneros.length > 3) return alert("Genres: select less than three")
+        if(local.localPlatforms.length > 3) return alert("Platforms: select less than three")
         if (Object.keys(catchErrors()).length !== 0) {
             return alert("Rellenar todos los campos")
         }
@@ -111,7 +143,8 @@ export default function CreateVideogame(props) {
             released: local.released,
             rating: local.rating,
             genres: local.localGeneros,
-            platforms: local.localPlatforms
+            platforms: local.localPlatforms,
+            background_image: local.background_image
         }
         fetch('http://localhost:3001/videogames', options(enviarPost))
             .then(response => response.json())
@@ -128,20 +161,24 @@ export default function CreateVideogame(props) {
                 <input placeholder="Name..." type="text" name="text" id="name" />
             </div>
             <div>
-                <label className={local.description ? createVideogame.p2 : createVideogame.p1}>Description: </label>
-                <textarea placeholder="Description..." type="text" name="text" id="description" />
+                <label className={local.rating ? createVideogame.p2 : createVideogame.p1}>Rating: </label>
+                <input placeholder="choose from 1 to 5..." type="number" name="text" id="rating"/>
             </div>
             <div>
                 <label className={local.released ? createVideogame.p2 : createVideogame.p1}>Date: </label>
                 <input placeholder="Date" type="date" name="text" id="released" />
             </div>
             <div>
-                <label className={local.rating ? createVideogame.p2 : createVideogame.p1}>Rating: </label>
-                <input placeholder="choose from 1 to 5..." type="number" name="text" id="rating"/>
+                <label className={local.description ? createVideogame.p2 : createVideogame.p1}>Description: </label>
+                <textarea placeholder="Description..." type="text" name="text" id="description" />
             </div>
-            <h2>Generos</h2>
-            {local.localGeneros.length <= 0 ? <p className={createVideogame.p1}>sleccionar almenos una plataforma X</p>
-                : <p className={createVideogame.p2}>sleccionar almenos una plataforma ✓</p>}
+            <div>
+                <label className={local.background_image ? createVideogame.p2 : createVideogame.p1}>Image: </label>
+                <input placeholder="insert url image..." type="text" name="text" id="background_image"/>
+            </div>
+            <h2>Genres</h2>
+            {local.localGeneros.length <= 0 || local.localGeneros.length >= 4 ? <p className={createVideogame.p1}>sleccionar almenos una plataforma, maximo 3 X</p>
+                : <p className={createVideogame.p2}>sleccionar almenos una plataforma, maximo 3 ✓</p>}
             {generos?.map((e, i) => {
                 return (
                     <div key={i}>
@@ -151,8 +188,8 @@ export default function CreateVideogame(props) {
                 )
             })}
             <h2>Platforms</h2>
-            {local.localPlatforms.length <= 0 ? <p className={createVideogame.p1}>sleccionar almenos una plataforma X</p>
-                : <p className={createVideogame.p2}>sleccionar almenos una plataforma ✓</p>}
+            {local.localPlatforms.length <= 0 || local.localPlatforms.length >= 4 ? <p className={createVideogame.p1}>sleccionar almenos una plataforma, maximo 3 X</p>
+                : <p className={createVideogame.p2}>sleccionar almenos una plataforma, maximo 3 ✓</p>}
             {platforms?.map((e, i) => {
                 return (
                     <div key={i}>

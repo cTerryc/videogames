@@ -8,7 +8,7 @@ const axios = require("axios")
 //!  ------> POST /videogames <-------
 
 router.post('/', async (req, res) => {
-    let { name, description, released, rating, genres, platforms } = req.body;
+    let { name, description, released, rating, genres, platforms, background_image } = req.body;
     platforms = platforms.toString()
     // genres es un "String", conviertiendo en Array
     if (typeof genres === "string") {
@@ -21,11 +21,13 @@ router.post('/', async (req, res) => {
             description,
             released,
             rating,
-            platforms
+            platforms,
+            background_image
         })
 
-        // obteniendo juegos de la Db solo los nombres
+        // esto me trae los generos que la variable "genres" provenientes del body, usara al momento de agregar las propiedades a mi tabla "VideogamesGenero", para mayor info hacer un "console.log"
         let genreDb = await Genero.findAll({ where: { name: genres } });
+        console.log("Esto es genredb => ", genreDb)
 
         // agrengando los generos a la relacion videogamegeneros
         await gameCreated.addGenero(genreDb);
@@ -48,19 +50,19 @@ router.get("/", async (req, res) => {
     // cada objeto es un genero q contiene juegos.
     const genres = response.data.results;
 
-    // Insertando todos los "nombres de cada generos" en la tabla "Genero"
+    // Insertando todos los "nombres de cada generos" en la tabla "Genero".
     await genres.forEach(g => {
         Genero.create({
             name: g.name
         })
-            .then(usuario => {
+            .then(genres => {
                 //con esto podria capturar el resultado de la creacion o solo mandar un console.log en pantalla
-                console.log('Usuario creado con éxito:')
+                console.log('Genres created Succesfull')
             })
             .catch(error => {
                 //si hay un error al crear un elemento en la tabla, con esto atrapo el error y asi el server no se cae
                 if (error.name === 'SequelizeUniqueConstraintError') {//! para capturar el error igualar siempre con "SequelizeUniqueConstraintError"
-                    console.error('Error: Ya existe el Genero');
+
                 } else {
                     // con esto atrapo un error q no sea por duplicado
                     console.error('Error creando Genero:', error);
@@ -80,6 +82,20 @@ router.get("/", async (req, res) => {
     //!  ------> GET /videogames Query<-------
     if (nameQuery) {
         try {
+
+            let cambiandoGeneroAgenres = responseDb.map(game => {
+                return {
+                    id: game.id,
+                    name: game.name,
+                    description: game.description,
+                    released: game.released,
+                    rating: game.rating,
+                    platforms: game.platforms,
+                    genres: game.Generos,
+                    background_image: game.background_image
+                }
+            })
+
             // Obteniendo todos los juegos de la API GAME
             const getApi = await axios(`https://api.rawg.io/api/games?search=${nameQuery}&key=${API_KEY}`)
 
@@ -88,16 +104,17 @@ router.get("/", async (req, res) => {
                 return {
                     id: ele.id,
                     name: ele.name,
-                    image: ele.background_image,
+                    background_image: ele.background_image,
                     released: ele.released,
                     rating: ele.rating,
-                    Generos: ele.genres,
+                    genres: ele.genres,
                     platforms: ele.platforms
                 }
             })
 
             // Concatenando ambos array responseApi y responseDb
-            const responseTotal = responseApi.concat(responseDb)
+            // const responseTotal = responseApi.concat(responseDb)
+            const responseTotal = [...cambiandoGeneroAgenres, ...responseApi]
 
             let arrayNames = [];
             // let i = 0;
@@ -127,6 +144,19 @@ router.get("/", async (req, res) => {
         //!  ------> GET /videogames <-------
         try {
 
+            let cambiandoGeneroAgenres = responseDb.map(game => {
+                return {
+                    id: game.id,
+                    name: game.name,
+                    description: game.description,
+                    released: game.released,
+                    rating: game.rating,
+                    platforms: game.platforms,
+                    genres: game.Generos,
+                    background_image: game.background_image
+                }
+            })
+
             // creando un array con todos los Links de la API q voy a solicitar, para poder tener los 100 juegos
             let arrayGetApi = [
                 axios.get(`https://api.rawg.io/api/games?key=${API_KEY}`),
@@ -148,6 +178,9 @@ router.get("/", async (req, res) => {
                     })
                 })
                 .catch(e => console.log(e))
+
+            //! concateno los juegos de mi "DB" = "responseDb" con los de la "Api Rawg" = "getTotalApi"
+            getTotalApi = [...cambiandoGeneroAgenres, ...getTotalApi]
 
             console.log(getTotalApi.length)
             res.status(200).send(getTotalApi)
